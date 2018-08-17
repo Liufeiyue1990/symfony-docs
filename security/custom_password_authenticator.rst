@@ -31,6 +31,7 @@ the user::
     use Symfony\Component\Security\Core\Exception\BadCredentialsException;
     use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
     use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+    use Symfony\Component\Security\Core\User\UserInterface;
     use Symfony\Component\Security\Core\User\UserProviderInterface;
     use Symfony\Component\Security\Http\Authentication\SimpleFormAuthenticatorInterface;
 
@@ -63,11 +64,12 @@ the user::
                 if ('' === ($givenPassword = $token->getCredentials())) {
                     throw new BadCredentialsException('The given password cannot be empty.');
                 }
-                if (!$this->encoder->isPasswordValid($user->getPassword(), $givenPassword, $user->getSalt())) {
+                if (!$this->encoder->isPasswordValid($user, $givenPassword)) {
                     throw new BadCredentialsException('The given password is invalid.');
                 }
             }
-
+            
+            $isPasswordValid = $this->encoder->isPasswordValid($user, $token->getCredentials());
             if ($isPasswordValid) {
                 $currentHour = date('G');
                 if ($currentHour < 14 || $currentHour > 16) {
@@ -90,7 +92,7 @@ the user::
 
             // CAUTION: this message will be returned to the client
             // (so don't put any un-trusted messages / error strings here)
-            throw new CustomUserMessageAuthenticationException('Invalid username or password');
+            // throw new CustomUserMessageAuthenticationException('Invalid username or password');
         }
 
         public function supportsToken(TokenInterface $token, $providerKey)
